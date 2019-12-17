@@ -59,7 +59,10 @@ public class WaitRebalanceTask implements IgniteCallable<Boolean> {
                 if (ctx.isLocal())
                     continue;
 
-                if (!ctx.topology().initialized()) {
+                try {
+                    ctx.topology();
+                }
+                catch (IllegalStateException e) {
                     LOG.info("Ready topVer is not initialized yet [grp=" + ctx.cacheOrGroupName() + "]");
                     rebalanced = false;
                     break;
