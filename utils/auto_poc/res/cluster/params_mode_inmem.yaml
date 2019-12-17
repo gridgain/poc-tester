@@ -1,0 +1,5 @@
+# Use in-memory cluster configs
+prepare:
+  main_parameters:
+    serverCfg: "config/cluster/inmemory-remote-server-config.xml"
+    clientCfg: "config/cluster/inmemory-remote-client-config.xml"

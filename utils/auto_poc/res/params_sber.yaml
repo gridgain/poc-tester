@@ -1,0 +1,128 @@
+sber_jdbc_create_processing_tables_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/create-processing-tables.properties
+  properties_params:
+    MAIN_CLASS: JdbcSqlScriptTask
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    query1: config/sber/create-processing-tables.sql
+    timeToWork: -1
+
+sber_jdbc_insert_cardholders_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/insert-cardholders.properties
+  properties_params:
+    MAIN_CLASS: JdbcPlainInsertTableTask
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    jdbcDataRange: "1000000:1019999"
+    lockFile: loadlockJDBC
+    reportInterval: 1
+    genClassName: CardholdersGenerator
+    timeToWork: -1
+
+sber_processing_transactions_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/processing-tx.properties
+  properties_params:
+    MAIN_CLASS: SberProcessingTask
+    cardsRange: "1000000:1019999"
+    reportInterval: 10
+#    timeToWork: 60
+    threads: 1
+
+sber_processing_transactions_cleanup_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/processing-cleanup.properties
+  properties_params:
+    MAIN_CLASS: SberProcessingCleanupTask
+    reportInterval: 1
+#    timeToWork: 600
+    interval: 30
+    timeThreshold: 30
+
+sber_acquiring_tx_gen_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/acquiring-tx-gen.properties
+  properties_params:
+    MAIN_CLASS: SberAcquiringTxGen
+    cardsRange: "1000000:1019999"
+#    timeToWork: 60
+    reportInterval: 1
+
+sber_acquiring_reconciliation_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/acquiring-reconciliation.properties
+  properties_params:
+    MAIN_CLASS: SberAcquiringReconciliationTask
+    cardsRange: "1000000:1019999"
+    reportInterval: 10
+#    timeToWork: 60
+    interval: 180
+    threads: 1
+    timeThreshold: 180
+    
+sber_acquiring_settlement_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/acquiring-settlement.properties
+  properties_params:
+    MAIN_CLASS: SberAcquiringSettlementTask
+    cardsRange: "1000000:1019999"
+    reportInterval: 10
+#    timeToWork: 60
+    interval: 180
+    threads: 1
+    timeThreshold: 180
+
+sber_acquiring_report_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/acquiring-reporting.properties
+  properties_params:
+    MAIN_CLASS: SberAcquiringReportTask
+    reportInterval: 1
+#    timeToWork: 60
+    interval: 180
+
+sber_acquiring_cleanup_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/sber/acquiring-cleanup.properties
+  properties_params:
+    MAIN_CLASS: SberAcquiringCleanupTask
+    reportInterval: 1
+#    timeToWork: 60
+    interval: 180
+    timeThreshold: 180

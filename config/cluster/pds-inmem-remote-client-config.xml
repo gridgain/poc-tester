@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--
+    Ignite Spring configuration file to startup grid.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <import resource="prepared-hosts.xml"/>
+    <import resource="${CACHES_CFG}"/>
+
+    <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+
+    <bean id="grid.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+        <property name="localHost" value="${ipInCluster}"/>
+
+        <property name="cacheConfiguration" ref="caches"/>
+
+        <property name="clientMode" value="true"/>
+
+        <property name="gridLogger">
+            <bean class="org.apache.ignite.logger.log4j2.Log4J2Logger">
+                <constructor-arg type="java.lang.String" value="config/cluster/log4j2.xml"/>
+            </bean>
+        </property>
+
+        <property name="consistentId" value="${CONSISTENT_ID}"/>
+
+        <property name="failureDetectionTimeout" value="180000"/>
+        <property name="clientFailureDetectionTimeout" value="90000"/>
+
+        <property name="failureHandler">
+            <bean class="org.apache.ignite.failure.StopNodeOrHaltFailureHandler">
+                <property name="ignoredFailureTypes">
+                    <list>
+                    </list>
+                </property>
+            </bean>
+        </property>
+
+        <!-- Workaround for https://ggsystems.atlassian.net/browse/GG-24042 -->
+        <property name="dataStorageConfiguration">
+            <bean class="org.apache.ignite.configuration.DataStorageConfiguration">
+                <property name="checkpointFrequency" value="60000"/>
+                <property name="walHistorySize" value="40"/>
+                <property name="writeThrottlingEnabled" value="true"/>
+
+                <property name="defaultDataRegionConfiguration">
+                    <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                        <property name="name" value="persistenceConfiguration"/>
+                        <property name="maxSize" value="#{30L * 1024 * 1024 * 1024}"/>
+                        <property name="metricsEnabled" value="true"/>
+                        <property name="persistenceEnabled" value="true"/>
+                    </bean>
+                </property>
+
+                <property name="dataRegionConfigurations">
+                    <list>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="inMemoryConfiguration"/>
+                            <property name="maxSize" value="#{30L * 1024 * 1024 * 1024}"/>
+                            <property name="metricsEnabled" value="true"/>
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                    </list>
+                </property>
+            </bean>
+        </property>
+
+
+
+        <property name="discoverySpi">
+            <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+                <property name="ipFinder">
+                    <bean
+                        class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">
+                        <property name="addresses" ref="hosts"/>
+                    </bean>
+                </property>
+                <property name="networkTimeout" value="60000"/>
+            </bean>
+        </property>
+    </bean>
+</beans>

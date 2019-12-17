@@ -1,0 +1,1003 @@
+jvm_opts:
+  CLIENT_JVM_OPTS:
+    - '-Xms8g'
+    - '-Xmx8g'
+  SERVER_JVM_OPTS:
+    - '-Xms12g'
+    - '-Xmx12g'
+  SERVER_JVM_OPTS_RANDOM:
+    - '-DIGNITE_WAL_MMAP':
+      - 'true'
+      - 'false'
+    - '-DIGNITE_UPDATE_NOTIFIER':
+      - 'true'
+      - 'false'
+  COMMON_JVM_OPTS:
+    - '-ea'
+    - '-XX:+PrintGCDetails'
+    - '-Xloggc:GC_LOG_PATH_PLACEHOLDER'
+    - '-verbose:gc'
+    - '-XX:+UseG1GC'
+    - '-XX:+PrintGCDateStamps'
+    - '-Djava.net.preferIPv4Stack=true'
+    - '-XX:MaxDirectMemorySize=268435456'
+  JMX_OPTS:
+    - '-Dcom.sun.management.jmxremote.port=1101'
+    - '-Dcom.sun.management.jmxremote.authenticate=false'
+    - '-Dcom.sun.management.jmxremote.ssl=false'
+    - '-Dcom.sun.management.jmxremote.local.only=false'
+
+common_properties:
+  cacheRange: 0:499
+  dataRange: 0:4999
+  timeToWork: 9000
+  jdbcDataRange: 1:300
+
+# This part need to preparation
+prepare:
+  main_parameters:
+    script: "bin/prepare.sh"
+    remoteWorkDir: /storage/ssd/prtagent/poc
+    definedJavaHome: /usr/lib/jvm/java-8-oracle
+    # backups -- possible backups for caches (colon-separated, will be chosen randomly)
+    backups: "2:3"
+    user: prtagent
+    #keyPath: /home/prtagent/.ssh/
+    walPath: /storage/ssd/prtagent/poc-wal
+    walArch: /storage/hdd/prtagent/poc-wal-arch
+    importedBaseCfg: config/cluster/caches/caches-1000.xml
+    zooKeeperPath: ../../var/zookeeper-3.4.13.tar.gz # A path relative to target/assembly
+    partitionLossPolicy: READ_WRITE_SAFE
+    # atomicityModes -- possible atomicityModes for a cache (chosen randomly)
+    # atomicityModes: "TRANSACTIONAL:TRANSACTIONAL_SNAPSHOT"
+    atomicityModes: "TRANSACTIONAL"
+    # dataRegionNames --  possible data region names for a cache (defined in server config, chosen randomly)
+    # Issue with inMemoryConfiguration: https://ggsystems.atlassian.net/browse/GG-24105
+#    dataRegionNames: "inMemoryConfiguration:persistenceConfiguration"
+    dataRegionNames: "persistenceConfiguration"
+
+deploy:
+  main_parameters:
+    script: "bin/deploy.sh"
+
+deploy_zk:
+  main_parameters:
+    script: "bin/deploy-zk.sh"
+#    remoteWorkDir: /storage/ssd/prtagent/poc
+#    zooKeeperPath: zookeeper-3.4.10.tar.gz
+
+load_task:
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/load.properties
+  properties_params:
+    # Class of task
+    MAIN_CLASS: LoadCacheTask
+    timeToWork: -1
+    # Start load from N entry ...
+    # dataRange: *# dataRange
+    # Entry size.
+    # String that contains 32 symbols x 2b
+    fieldCount: 32
+    #    fieldCount: 128
+    fieldLength: 32
+    # By default we have 16 caches from cachepoc0 till cachepoc15
+    cacheNamePrefix: cachepoc
+    # cacheRange: *# cacheRange
+    # Last index + 1
+    # It means that we start from 0 and finish by 15
+    # Sleep before start [crutch]
+    waitBeforeStart: 10
+    # Frequency of report records
+    reportInterval: 10
+    loadThreads: 8
+    lockFile: loadlock
+    # In case if will be added model as data source
+    model: None
+    cpOnFailedLoad: false
+    allowOverwrite: true
+
+# Loads data into caches using putAll() method
+put_all_load_task:
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/putall-load.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: PutAllLoadTask
+    timeToWork: -1
+    # Cache name prefix. Default: cachepoc.
+    cacheNamePrefix: cachepoc
+    # Cache range start.
+    # cacheRange: *# cacheRange
+    # Cache range end.
+    # Load range
+    # dataRange: *# dataRange
+    # Fields per entry.
+    fieldCount: 16
+    # Field content size.
+    fieldLength: 16
+    # Batch size
+    batchSize: 500
+    # Time interval between starting the node and starting actual test.
+    waitBeforeStart: 20
+    # Lock file name.
+    lockFile: loadlock
+    # Report interval.
+    reportInterval: 1
+    # Load threads count.
+    loadThreads: 1
+
+kill:
+  main_parameters:
+    script: "bin/kill.sh"
+    sudo: "empty"
+    allJava: "empty"
+
+clean:
+  main_parameters:
+    script: "bin/include/clean.sh"
+    # Flag for cleaning entire remote work directory
+    cleanAll: "empty"
+    # Flag for removing backups of work directory, WAL, WAL archive
+    #  Backup is created when data loss or data inconsistency is found
+    # removeBackups: "empty"
+
+dstat_start:
+  main_parameters:
+    script: "bin/include/stats.sh"
+    dstat: "start"
+    sudo: "empty"
+
+dstat_stop:
+  main_parameters:
+    script: "bin/include/stats.sh"
+    dstat: "stop"
+    sudo: "empty"
+
+start_servers:
+  main_parameters:
+    script: "bin/start-servers.sh"
+
+start_zk:
+  main_parameters:
+    script: "bin/start-zk.sh"
+
+put_get_task:
+  override_clientHosts:
+    source: clientHosts
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/putget.properties
+  properties_params:
+    MAIN_CLASS: PutGetCacheTask
+    # dataRange: *# dataRange
+    cacheNamePrefix: cachepoc
+    # cacheRange: *# cacheRange
+    reportInterval: 10
+    # Duration of task
+    # timeToWork: *# timeToWork
+    threads: 8
+
+noop_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/noop.properties
+  properties_params:
+    MAIN_CLASS: NoOpTask
+    timeToWork: 1800
+
+topology_increase_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/topology-increase.properties
+  properties_params:
+    MAIN_CLASS: TopologyIncreaseTask
+#    timeToWork: *timeToWork
+    threadsToRun: 1
+    sleepBeforeStop: 0
+
+restart_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart.properties
+  properties_params:
+    MAIN_CLASS: RestartServerTask
+    # timeToWork: *# timeToWork
+    interval: 240
+    # Array of possible time intervals for node to be off.
+    offTime: "5:5:10:20:60:180"
+    # The reportInterval parameter affects the accurancy of restart statistics.
+    # So it is recommended to set shorter values to this parameter.
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    onCheckpointProb: 50
+    waitForFlags: pauseRestart
+    syncFlags: pauseCheck
+    # changeBltProb - probability that baseline topology will be changed upon killing and starting a node (in percents).
+    # Known issue: https://ggsystems.atlassian.net/browse/GG-24213 -- idle_verify conflicts if change BLT
+#    changeBltProb: 50
+    changeBltProb: 0
+
+# Call idle_verify after node(s) restart
+restart_verify_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart.properties
+  properties_params:
+    MAIN_CLASS: RestartServerTask
+    interval: 240
+    offTime: "5:5:10:20:60:180"
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    onCheckpointProb: 50
+    waitForFlags: pauseRestart
+    syncFlags: pauseCheck,pauseTX
+    verifyPartitions: true
+
+restart_youngest_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart.properties
+  properties_params:
+    MAIN_CLASS: RestartServerTask
+#    timeToWork: *timeToWork
+    interval: 120
+    #Time interval for node to be off.
+    offTime: 10
+    # The reportInterval parameter affects the accurancy of restart statistics.
+    # So it is recommended to set shorter values to this parameter.
+    reportInterval: 1
+    numToRestart: 1
+    mode: youngest
+    onCheckpointProb: 0
+
+stop_resume_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/stop-resume.properties
+  properties_params:
+    MAIN_CLASS: StopResumeTask
+    # timeToWork: *# timeToWork
+    interval: 240
+    #Time interval for node to be suspended.
+    offTime: 40
+    nodeTypes: "client,server"
+    # The reportInterval parameter affects the accurancy of restart statistics.
+    # So it is recommended to set shorter values to this parameter.
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    onCheckpointProb: 0
+    # Client tasks which will not be affected (comma-separated).
+    #excludedTaskNames: "TxCacheTask,TxBalanceTask"
+
+stop_resume_server_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/stop-resume-server.properties
+  properties_params:
+    MAIN_CLASS: StopResumeTask
+    # timeToWork: *# timeToWork
+    interval: 360
+    offTime: 600
+    nodeTypes: "server"
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    onCheckpointProb: 0
+
+stop_resume_client_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/stop-resume-client.properties
+  properties_params:
+    MAIN_CLASS: StopResumeTask
+    # timeToWork: *# timeToWork
+    interval: 360
+    offTime: 600
+    nodeTypes: "client"
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    onCheckpointProb: 0
+    # Client tasks which will not be affected (comma-separated).
+    #excludedTaskNames: "TxCacheTask,TxBalanceTask"
+
+restart_client_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart_client.properties
+  properties_params:
+    MAIN_CLASS: RestartClientTask
+    # timeToWork: *# timeToWork
+    interval: 90
+    #Time interval for node to be off.
+    offTime: 10
+    # The reportInterval parameter affects the accurancy of restart statistics.
+    # So it is recommended to set shorter values to this parameter.
+    reportInterval: 1
+    numToRestart: 1
+    mode: sequential
+    # activate
+    #    idList: poc-tester-client-172.25.1.24-id-1
+    idList:
+    checkFlag: false
+
+restart_noop_client_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart-noop-client.properties
+  properties_params:
+    MAIN_CLASS: RestartClientTask
+#    timeToWork: *timeToWork
+    waitBeforeStart: 20
+    interval: 120
+    offTime: 5
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    includedTaskNames: NoOpTask
+    checkFlag: false
+
+restart_zk_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/restart-zk.properties
+  properties_params:
+    MAIN_CLASS: RestartZKTask
+    # timeToWork: *# timeToWork
+    interval: 60
+    offTime: 15
+    reportInterval: 1
+    numToRestart: 1
+    mode: random
+    checkFlag: false
+
+restart_reset_lost_part_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/reset.properties
+  properties_params:
+    MAIN_CLASS: ResetLostPartOnRestartWithEmptyPDSTask
+    # timeToWork: *# timeToWork
+    interval: 30
+    reportInterval: 1
+    waitBeforeStart: 20
+    onCheckpointProb: 0
+
+restart_rebalance_reset_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/reset-rebalance.properties
+  properties_params:
+    MAIN_CLASS: CheckRestartWithEmptyPDSTask
+    # timeToWork: *# timeToWork
+    interval: 30
+    reportInterval: 1
+    waitBeforeStart: 20
+    onCheckpointProb: 0
+
+tx_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 4
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/tx.properties
+  properties_params:
+    MAIN_CLASS: TxCacheTask
+    # dataRange: *# dataRange
+    cacheNamePrefix: cachepoc
+    txConcurrency: PESSIMISTIC
+    txIsolation: REPEATABLE_READ
+    # cacheRange: *# cacheRange
+    reportInterval: 10
+    # Duration of task
+    # timeToWork: *# timeToWork
+    threads: 8
+    txLen: 2
+
+tx_balance_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 3
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/transfer/tx-balance.properties
+  properties_params:
+    MAIN_CLASS: TxBalanceTask
+    waitForFlags: pauseTX
+    # dataRange: *# dataRange
+    cacheNamePrefix: cachepoc
+    txConcurrency: PESSIMISTIC
+    txIsolation: REPEATABLE_READ
+    # cacheRange: *# cacheRange
+    reportInterval: 10
+    # Duration of task
+    # timeToWork: *# timeToWork
+    threads: 8
+    txLen: 2
+    # In mixed mode, transfer operations will be done only between PART_A and PART_B caches,
+    #  but neither PART_A-to-PART-A nor PART_B-to-PART_B. Use appropriate server and client XML configs!
+    #    mixedMode: true
+    # Colon-separated ranges of probabilities for different transaction types:
+    # 1 - Simple get() and put() transactions.
+    # 2 - getAll() and putAll() transactions.
+    # 3 - removeAll() and putAll() transactions.
+    probRange: "40:30:30"
+    # If putGetTxLenProbs=1:1:5:10, then transactions length distribution will be as follows:
+    # length=1 will get 50% probability, length=5 - 25%, length=10 - 25%.
+    # Colon-separated transactions length probabilities for get() and put() transactions.
+    putGetTxLenProbs: "5:5:5:10:10"
+    # Colon-separated transactions length probabilities for getAll() and putAll() transactions.
+    putAllTxLenProbs: "7:7:12:12"
+    # Colon-separated transactions length probabilities for removeAll() and putAll() transactions.
+    removeTxProbs: "3:5:7:9"
+    # WA for https://ggsystems.atlassian.net/browse/GG-24105
+    cachePairSameBackups: true
+
+
+# IMPORTANT: This task should be started before tx_balance_task.
+# Otherwise summation may be inaccurate because of running transactions.
+check_affinity_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/transfer/check-affinity.properties
+  properties_params:
+    # Main class.
+    MAIN_CLASS: CheckAffinityTask
+    # Cache name prefix. Default: cachepoc.
+    cacheNamePrefix: cachepoc
+    # Cache range start.
+    # cacheRange: *# cacheRange
+    # Cache range end.
+    # dataRange: *# dataRange
+    #Time to work.
+    # timeToWork: *# timeToWork
+    # Interval. Should be greater than the duration of calculations made by the task.
+    # 5 minutes is OK on 1000 caches.
+    interval: 300
+    waitForFlags: pauseCheck
+    syncFlags: pauseRestart,pauseTX
+
+wait_for_lock:
+  main_parameters:
+    script: "bin/include/wait-for-lock.sh"
+    lockName: "loadlock"
+
+wait_for_lock1:
+  main_parameters:
+    script: "bin/include/wait-for-lock.sh"
+    lockName: "lock1"
+
+wait_for_lock2:
+  main_parameters:
+    script: "bin/include/wait-for-lock.sh"
+    lockName: "lock2"
+
+wait_for_lock3:
+  main_parameters:
+    script: "bin/include/wait-for-lock.sh"
+    lockName: "lock3"
+
+stats:
+  main_parameters:
+    script: "bin/include/stats.sh"
+
+single_thread_dump:
+  main_parameters:
+    script: "bin/include/stats.sh"
+    threadDump: "empty"
+
+thread_dump_schedule:
+  main_parameters:
+    script: "bin/include/stats.sh"
+    threadDump: "empty"
+    timeToRun: 36000
+    timeInterval: 30
+
+process_stats:
+  main_parameters:
+    script: "bin/include/stats.sh"
+    processStats: "empty"
+    timeToRun: 120
+    timeInterval: 5
+
+tx_part_task:
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/check-restore/tx-B.properties
+  properties_params:
+    MAIN_CLASS: TxCacheTask
+    waitForFlags: pauseTX
+    # dataRange: *# dataRange
+    cacheNamePrefix: cachepoc_PART_B_
+    txConcurrency: PESSIMISTIC
+    txIsolation: REPEATABLE_READ
+    # cacheRange: *# cacheRange
+    reportInterval: 15
+    # Duration of task
+    # timeToWork: *# timeToWork
+    threads: 8
+    txLen: 2
+
+tx_put_task:
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/tx-put.properties
+  properties_params:
+    MAIN_CLASS: TxCachePutTask
+    waitForFlags: pauseTX
+    # dataRange: *# dataRange
+    cacheNamePrefix: cachepoc_PART_B_
+    txConcurrency: PESSIMISTIC
+    txIsolation: REPEATABLE_READ
+    # cacheRange: *# cacheRange
+    reportInterval: 15
+    # Duration of task
+    # timeToWork: *# timeToWork
+    threads: 8
+    putGetTxLenProbs: "2:2:5:10"
+    txLen: 2
+
+activate_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/activate.properties
+  properties_params:
+    MAIN_CLASS: ActivateTask
+    timeToWork: -1
+
+jdbc_jdbc_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Create PERSON table
+    taskProperties: config/jdbc/jdbc.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSqlQueryTask
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    query1: config/jdbc/example-query-create-table.sql
+    timeToWork: -1
+
+jdbc_create_table_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Create 'Organisation' and 'Taxpayers' tables
+    taskProperties: config/jdbc/create-table.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSqlScriptTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # SQL script to execute.
+    query1: config/jdbc/create-table.sql
+    timeToWork: -1
+
+jdbc_insert_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Population of the 'Organisation' table
+    taskProperties: config/jdbc/insert.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcPlainInsertTableTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # Number of organisation to be inserted in Organisation table.
+    # jdbcDataRange: *# jdbcDataRange
+    # Lock file name.
+    lockFile: loadlockJDBC
+    reportInterval: 1
+    genClassName: SimpleGenerator
+    timeToWork: -1
+
+jdbc_select_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Select data from the 'Organisation' table
+    taskProperties: config/jdbc/select.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSelectTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # Number of organisation to be queried.
+    # jdbcDataRange: *# jdbcDataRange
+    reportInterval: 10
+    # timeToWork: *# timeToWork
+
+rest_select_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Select data from the 'Organisation' table
+    taskProperties: config/jdbc/rest-select.properties
+  properties_params:
+    MAIN_CLASS: RestSelectTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # Number of organisation to be queried.
+    # jdbcDataRange: *# jdbcDataRange
+    reportInterval: 10
+    # timeToWork: *# timeToWork
+    limit: 10
+    threads: 1
+
+jdbc_jdbc_insert_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Population of the PERSON table
+    taskProperties: config/jdbc/jdbc-insert.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSqlQueryTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    query1: config/jdbc/example-query-insert.sql
+    timeToWork: -1
+
+jdbc_jdbc_script_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Creation of 'Accounts', 'Tellers', 'Branches', 'History' tables
+    taskProperties: config/jdbc/jdbc-script.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSqlScriptTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    query1: config/jdbc/script.sql
+    timeToWork: -1
+
+wait_for_jdbc_lock:
+  main_parameters:
+    script: "bin/include/wait-for-lock.sh"
+    lockName: "loadlockJDBC"
+
+# JDBC Balance tasks >>>
+jdbc_create_balance_table_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/jdbc.mvcc/create-table-balance.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcSqlScriptTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # SQL script to execute.
+    query1: config/jdbc.mvcc/create-balance-table.sql
+    timeToWork: -1
+
+jdbc_insert_balance_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/jdbc.mvcc/insert-balance.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcPlainInsertTableTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # jdbcDataRange: "1:500"
+    # Lock file name.
+    lockFile: loadlockJDBC
+    reportInterval: 1
+    genClassName: BalanceGenerator
+    timeToWork: -1
+
+jdbc_tx_balance_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Select data from the 'Organisation' table
+    taskProperties: config/jdbc.mvcc/balance.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: JdbcTxBalanceTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    # jdbcDataRange: "1:500"
+    reportInterval: 1
+    # timeToWork: *# timeToWork
+    threads: 2
+    waitBeforeStart: 60
+    waitForFlags: pauseTX
+
+jdbc_check_sum_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    # Select data from the 'Organisation' table
+    taskProperties: config/jdbc.mvcc/check-sum.properties
+  properties_params:
+    # Task main class.
+    MAIN_CLASS: CheckJdbcSumTask
+    # Connection string. If no host ip is defined ip for connection will be chosen randomly from server host ip list.
+    connectionString: jdbc:ignite:thin://jdbc_host_port/
+    reportInterval: 10
+    # timeToWork: *# timeToWork
+    #    waitBeforeStart: 120
+    interval: 600
+    waitForFlags: pauseCheck
+    syncFlags: pauseRestart,pauseTX
+
+# <<< JDBC Balance tasks
+
+#-------------------------------------------------------
+
+service_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/service.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: ServiceTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+
+register_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/register.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: RegisterTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+
+#continuous_query_task:
+#  override_clientHosts:
+#    source: clientHosts
+#    nodes: 1
+#  main_parameters:
+#    script: "bin/start-clients.sh"
+#    taskProperties: config/continuous-query.properties
+#    clientHosts: None
+#  properties_params:
+#    MAIN_CLASS: ContinuousQueryTask
+#    # timeToWork: *# timeToWork
+#    threads: 8
+#    waitBeforeStart: 20
+
+continuous_query_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/continuous-query.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: CQTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+    # dataRange: *# dataRange
+    registeredQryCnt: 2
+    setRemoteFilterFactory: true
+    setLocalQuery: true
+    cacheNameForContQuery: cont_query_tran_part
+#    cacheNameForContQuery: cont_query_tran_repl
+#    cacheNameForContQuery: cont_query_atom_part
+#    cacheNameForContQuery: cont_query_atom_repl
+
+check_heap_size_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/check-heap-size.properties
+    clientHosts: None
+  properties_params:
+    # Main class.
+    MAIN_CLASS: CheckHeapSizeTask
+    # Time to work.
+    # timeToWork: *# timeToWork
+    # Threads. For this task there shouldn't be more than 1 thread.
+    threads: 1
+    # Wait before start timeout.
+    waitBeforeStart: 600
+    # Time interval between operations.
+    interval: 600
+    # Coefficient of heap size difference. If after the check current heap size is more than first heap size * coefficient
+    # we detect memory leak possibility.
+    coefficient: 1.5
+    # Number of failed test iterations before test will stop.
+    failuresBeforeStop: 1
+    # Check heap size type.
+    # 1 - JMX (default) Will use JMX to check heap usage.
+    # 2 - FILE_SIZE Task will create heap dump and than return heap dump file size.
+    # 3 - REACHABLE_INSTANCES_SIZE Task will create heap dump and count size of all reachable instances.
+#    checkType: JMX
+    nodesToCheck: 2
+
+check_grid_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/check-grid.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: CheckGridStateTask
+    timeToWork: -1
+
+cq_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/cq.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: CQTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+
+create_destroy_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/create-destroy.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: CreateDestroyCacheTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+
+invoke_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/invoke.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: InvokeTask
+    # timeToWork: *# timeToWork
+    threads: 8
+    waitBeforeStart: 20
+
+# Creates and destroys caches
+cache_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/cache.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: CacheTask
+    cacheNamePrefix: cache_dynamic_
+    # cacheRange: *# cacheRange
+    # If # dataRange is set, then preload data to caches
+    ## dataRange: *# dataRange
+    #    /** Fields per entry. */
+    #fieldCount: 32
+    #    /** Field content size. */
+    #fieldLength: 32
+    # caches life time in seconds if mode is 'create_and_destroy'
+    lifeTime: 60
+    # mode can be create_and_destroy, create, destroy
+    mode: create_and_destroy
+    #mode: create
+    #mode: destroy
+    cacheMode: PARTITIONED
+    atomicityMode: TRANSACTIONAL
+    writeSynchronizationMode: FULL_SYNC
+    backupCount: 2
+    # Time to work
+    ## timeToWork: *# timeToWork
+    # Interval between iterations.
+    #interval: 20
+    waitBeforeStart: 20
+    reportInterval: 1
+
+cu_diagnostic_task:
+  override_clientHosts:
+    source: clientHosts
+    nodes: 1
+  main_parameters:
+    script: "bin/start-clients.sh"
+    taskProperties: config/server-diagnostic.properties
+    clientHosts: None
+  properties_params:
+    MAIN_CLASS: RemoteCmdTask
+    # timeToWork: *# timeToWork
+    interval: 1
+    remoteCmd: "bash REMOTE_WORK_DIR/bin/control.sh --host REMOTE_HOST --diagnostic pageLocks dump_log"

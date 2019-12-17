@@ -1,0 +1,3 @@
+prepare:
+  main_parameters:
+    importedBaseCfg: config/cluster/caches/caches-2000.xml

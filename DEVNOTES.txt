@@ -1,0 +1,6 @@
+Building from sources
+=========================================
+
+Run
+
+mvn clean package -DskipTests

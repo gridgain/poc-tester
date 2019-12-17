@@ -1,0 +1,72 @@
+# Client summary context.
+clientSummaryCtx:
+  # Lines to look for.
+  linesToParse:
+     - Creating full
+     - Creating incremental
+     - Found stop flag
+     - Starting to count
+     - Initial sum
+     - Current sum
+     - Total size
+     - No response from node
+     - Killing node with id
+     - seconds before killing node 
+     - Creating checksum.
+     - Check sum has been created. 
+     - to shared directory
+     - ) has been created. Id = 
+     - Shared directory check 
+     - Starting iteration 
+     - Partition checksums are
+     - Inserting key 
+     - Ignite node stopped in the middle of checkpoint 
+     - Continuous query has 
+     - Number of running transactions is 
+     - Transaction start time = 
+     - Starting server node with consistent
+     - Starting task
+     - New heap size
+     - LoadCacheTask has finished load
+     - Starting killed nodes
+     - Starting zookeeper on the host
+     - Trying to stop
+     - Killing process with PID
+     - Wait when rebalance finish
+     - wait for rebalance
+     - WaitRebalanceTask
+     - Received all expected join events
+     - [ERROR]
+     - Exception
+    #  - Setting flag
+    #  - Incrementing flag
+    #  - Decrementing flag
+    #  - has non-zero value
+
+# Server events context.
+serverEventCtx:
+  # Events.
+  # For each key in following map will be created a directory containing files with node log lines which match at least
+  # one of the patterns defined in list. For each server node will be created its own file.
+  events:
+    rebalance-logs:
+     - Rebalancing scheduled
+     - Starting rebalancing
+     - Completed rebalancing
+     - Completed (final) rebalancing
+     - Completed rebalance future
+     - Cancelled rebalancing
+    exchange-logs:
+     - Received full message
+     - Finish exchange future
+    checkpoint-logs:
+     - Checkpoint started
+     - Checkpoint finished
+    discovery-logs:
+     - disco-event-worker
+
+# List of lines to exclude from parsed server logs.
+serverExcluded:
+ - Error when executing timeout callback
+ - grid-timeout-worker
+ - Failed completing transaction

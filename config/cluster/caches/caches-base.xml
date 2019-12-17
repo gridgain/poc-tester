@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-2.0.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="file://${pocTesterHome}/config/cluster/caches.properties"/>
+    
+    <util:list id="indexed-types">
+        <value>java.lang.Long</value>
+        <value>org.apache.ignite.scenario.internal.model.SampleObject</value>
+    </util:list>
+
+    <util:list id="caches">
+        <bean id="cache-template-bean" abstract="true" class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="balanceCacheTemplate*"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="backups" value="${cache.backups.0}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="poc-system-cache"/>
+            <property name="cacheMode" value="REPLICATED"/>
+            <property name="atomicityMode" value="ATOMIC"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="msgCache"/>
+            <property name="cacheMode" value="REPLICATED"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="sqlSchema" value="PUBLIC"/>
+            <property name="queryEntities">
+                <list>
+                    <bean class="org.apache.ignite.cache.QueryEntity">
+                        <property name="keyType" value="java.lang.String"/>
+                        <property name="keyFieldName" value="flag"/>
+                        <property name="valueType" value="java.lang.Integer"/>
+                        <property name="valueFieldName" value="val"/>
+                        <property name="tableName" value="msgTable"/>
+                        <property name="fields">
+                            <map>
+                                <entry key="flag" value="java.lang.String"/>
+                                <entry key="val" value="java.lang.Integer"/>
+                            </map>
+                        </property>
+                    </bean>
+                </list>
+            </property>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="myCounterCache"/>
+            <property name="cacheMode" value="REPLICATED"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="sqlFunc"/>
+            <property name="sqlFunctionClasses">
+                <list>
+                    <value>org.apache.ignite.scenario.internal.jdbc.IgniteSequenceFunction</value>
+                </list>
+            </property>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cont_query_tran_part"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cont_query_tran_repl"/>
+            <property name="atomicityMode" value="TRANSACTIONAL"/>
+            <property name="cacheMode" value="REPLICATED"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cont_query_atom_part"/>
+            <property name="atomicityMode" value="ATOMIC"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cont_query_atom_repl"/>
+            <property name="atomicityMode" value="ATOMIC"/>
+            <property name="cacheMode" value="REPLICATED"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_0"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_1"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_2"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_3"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_4"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_5"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_6"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_7"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_8"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_A_9"/>
+            <property name="groupName" value="cache_group_0"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.0}"/>
+            <property name="backups" value="${cache.backups.0}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.0}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_0"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_1"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_2"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_3"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_4"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_5"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_6"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_7"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_8"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+        </bean>
+
+        <bean class="org.apache.ignite.configuration.CacheConfiguration">
+            <property name="name" value="cachepoc_PART_B_9"/>
+            <property name="groupName" value="cache_group_1"/>
+            <property name="atomicityMode" value="${cache.atomicityMode.1}"/>
+            <property name="backups" value="${cache.backups.1}"/>
+            <property name="cacheMode" value="PARTITIONED"/>
+            <property name="dataRegionName" value="${cache.dataRegionName.1}"/>
+            <property name="writeSynchronizationMode" value="FULL_SYNC"/>
+            <property name="partitionLossPolicy" value="${cache.partitionLossPolicy}"/>
+            <property name="indexedTypes" ref="indexed-types"/>
+        </bean>
+
+    </util:list>
+</beans>

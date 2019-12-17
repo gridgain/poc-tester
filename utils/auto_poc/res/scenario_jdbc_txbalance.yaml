@@ -1,0 +1,22 @@
+# Several params.yaml will be merged into one. Newer values will overwrite older (if present)
+parameters:
+  - res/params.yaml
+#  - res/cluster/params_mode_inmem.yaml
+setup:
+  - prepare
+  - kill
+  - clean
+  - deploy
+  - dstat_start
+test:
+  - start_servers
+  - activate_task
+  - jdbc_create_balance_table_task
+  - jdbc_insert_balance_task
+  - wait_for_jdbc_lock
+  - jdbc_check_sum_task
+  - jdbc_tx_balance_task
+  - restart_task
+teardown:
+  - kill
+  - dstat_stop

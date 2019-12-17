@@ -1,0 +1,20 @@
+jvm_opts:
+  COMMON_JVM_OPTS:
+    - '-ea'
+    - '-Xlog:gc*:GC_LOG_PATH_PLACEHOLDER'
+    - '-verbose:gc'
+    - '-XX:+UseG1GC'
+    - '-XX:+DisableExplicitGC'
+    - '-Djava.net.preferIPv4Stack=true'
+    - '-XX:MaxDirectMemorySize=268435456'
+    - '--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED'
+    - '--add-exports=java.base/sun.nio.ch=ALL-UNNAMED'
+    - '--add-exports=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED'
+    - '--add-exports=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED'
+    - '--add-exports=java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED'
+    - '--illegal-access=permit'
+    - '-Djdk.tls.client.protocols=TLSv1.2'
+
+prepare:
+  main_parameters:
+    definedJavaHome: /usr/lib/jvm/java-11-oracle

@@ -1,0 +1,20 @@
+# Several params.yaml will be merged into one. Newer values will overwrite older (if present)
+parameters:
+  - res/params.yaml
+#  - res/cluster/params_mode_inmem.yaml
+setup:
+  - prepare
+  - kill
+  - clean
+  - deploy
+  - dstat_start
+  - thread_dump_schedule
+test:
+  - start_servers
+  - activate_task
+  - continuous_query_task
+  - check_heap_size_task
+#  - restart_task
+teardown:
+  - kill
+  - dstat_stop

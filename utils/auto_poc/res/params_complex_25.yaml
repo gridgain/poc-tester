@@ -1,0 +1,23 @@
+common_properties:
+  cacheRange: 0:499
+  dataRange: 0:4999
+  timeToWork: 36000
+  jdbcDataRange: 1:500
+
+tx_balance_task:
+  properties_params:
+    cacheNamePrefix: cachepoc_PART_[AB]
+
+# IMPORTANT: This task should be started before tx_balance_task.
+# Otherwise summation may be inaccurate because of running transactions.
+check_affinity_task:
+  properties_params:
+    cacheNamePrefix: cachepoc_PART_[AB]
+
+tx_part_task:
+  properties_params:
+    cacheNamePrefix: cachepoc_PART_D_
+
+tx_put_task:
+  properties_params:
+    cacheNamePrefix: cachepoc_PART_D_

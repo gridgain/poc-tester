@@ -1,0 +1,1 @@
+insert into PERSON(id , first_name , last_name) VALUES (1, 'John', 'Doe');

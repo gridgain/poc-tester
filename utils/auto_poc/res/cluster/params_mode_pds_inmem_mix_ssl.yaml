@@ -1,0 +1,5 @@
+prepare:
+  main_parameters:
+    # Nodes and caches config to use with TxBalance task's mixed mode
+    serverCfg: "config/cluster/ssl/pds-inmem-remote-server-config.xml"
+    clientCfg: "config/cluster/ssl/pds-inmem-remote-client-config.xml"

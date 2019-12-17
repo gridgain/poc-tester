@@ -1,0 +1,38 @@
+jvm_opts:
+  CLIENT_JVM_OPTS:
+    - '-Xms512m'
+    - '-Xmx512m'
+  SERVER_JVM_OPTS:
+    - '-Xms1g'
+    - '-Xmx1g'
+
+common_properties:
+  cacheRange: 0:15
+  dataRange: 0:99
+  timeToWork: 300
+  jdbcDataRange: 1:300
+
+prepare:
+  main_parameters:
+    remoteWorkDir: /tmp/poc-tester
+    user: gridgain
+    keyPath: /home/gridgain/.ssh/id_rsa
+    walPath: /tmp/poc-tester/poc-wal
+    walArch: /tmp/poc-tester/poc-wal-arch
+    importedBaseCfg: config/cluster/caches/caches-base.xml
+    clientCfg: config/cluster/inmemory-remote-client-config.xml
+    serverCfg: config/cluster/inmemory-remote-server-config.xml
+    dataRegionNames: "inMemoryConfiguration"
+
+kill:
+  main_parameters:
+    sudo: None
+    allJava: None
+
+dstat_start:
+  main_parameters:
+    sudo: None
+
+dstat_stop:
+  main_parameters:
+    sudo: None

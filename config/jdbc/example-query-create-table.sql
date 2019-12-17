@@ -1,0 +1,1 @@
+create table if not exists PERSON(id bigint, first_name varchar(50), last_name varchar(50), PRIMARY KEY(id));

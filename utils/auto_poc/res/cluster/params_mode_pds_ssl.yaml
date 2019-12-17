@@ -1,0 +1,6 @@
+prepare:
+  main_parameters:
+    # Persistence enabled + SSL
+    serverCfg: "config/cluster/ssl/vmipfinder-remote-server-config.xml"
+    clientCfg: "config/cluster/ssl/vmipfinder-remote-client-config.xml"
+

@@ -1,0 +1,5 @@
+prepare:
+  main_parameters:
+    # Persistence + ZooKeeper discovery
+    serverCfg: "config/cluster/zookeeper/zk-remote-server-config.xml"
+    clientCfg: "config/cluster/zookeeper/zk-remote-client-config.xml"

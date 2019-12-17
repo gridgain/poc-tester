@@ -1,0 +1,54 @@
+# Several params.yaml will be merged into one. Newer values will overwrite older (if present)
+parameters:
+  - res/params.yaml
+  - res/params_complex.yaml
+  - res/cluster/params_mode_pds_inmem_mix.yaml
+  - res/cache/params_cache_2000_mixed.yaml
+  - res/params_sber.yaml
+setup:
+  - prepare
+  - kill
+  - clean
+  - deploy
+  - dstat_start
+test:
+  - start_servers
+
+  - load_task
+  - wait_for_lock
+
+  # Pre-load for JDBC Transfer
+  - jdbc_create_balance_table_task
+  - jdbc_insert_balance_task
+  - wait_for_jdbc_lock
+
+  # Preload data for Sberbank's "processing" use case
+  - sber_jdbc_create_processing_tables_task
+  - sber_jdbc_insert_cardholders_task
+  - wait_for_jdbc_lock
+
+  # Transfer tasks
+  - check_affinity_task
+  - tx_balance_task
+
+  # JDBC Transfer tasks
+  - jdbc_check_sum_task
+  - jdbc_tx_balance_task
+
+  - sber_processing_transactions_task
+  - sber_processing_transactions_cleanup_task
+  - sber_acquiring_tx_gen_task
+  - sber_acquiring_reconciliation_task
+  - sber_acquiring_settlement_task
+  - sber_acquiring_report_task
+  - sber_acquiring_cleanup_task
+
+  - topology_increase_task
+
+  # Server nodes restart
+  - restart_youngest_task
+
+  - check_heap_size_task
+teardown:
+  - kill
+  - dstat_stop
