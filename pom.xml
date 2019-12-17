@@ -22,14 +22,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.gridgain</groupId>
+    <groupId>org.apache.ignite</groupId>
     <artifactId>poc-tester</artifactId>
     <version>${project.version}</version>
     <url>http://ignite.apache.org</url>
 
     <properties>
         <project.version>0.1.0-SNAPSHOT</project.version>
-        <ignite.version>8.7.8</ignite.version>
+        <ignite.version>2.5.13</ignite.version>
     </properties>
 
     <repositories>
@@ -65,31 +65,31 @@
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-core</artifactId>
             <version>${ignite.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-spring</artifactId>
             <version>${ignite.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-log4j2</artifactId>
             <version>${ignite.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-rest-http</artifactId>
             <version>${ignite.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-zookeeper</artifactId>
             <version>${ignite.version}</version>
         </dependency>
@@ -144,7 +144,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.gridgain</groupId>
+            <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-slf4j</artifactId>
             <version>${ignite.version}</version>
         </dependency>
