@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
 public class AcquiringTx {
     private long SRCPAN;

@@ -17,14 +17,13 @@
 
 package org.apache.ignite.scenario;
 
-import org.apache.ignite.cache.affinity.AffinityKeyMapped;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
-import org.apache.ignite.scenario.internal.AbstractSberbankTask;
+import org.apache.ignite.scenario.internal.AbstractProcessingTask;
 import org.apache.ignite.scenario.internal.PocTesterArguments;
 import org.apache.ignite.scenario.internal.TaskProperties;
 import org.apache.ignite.scenario.internal.jdbc.CardholdersGenerator;
-import org.apache.ignite.scenario.internal.model.sberbank.AuthHistoryKey;
-import org.apache.ignite.scenario.internal.model.sberbank.CardholderKey;
+import org.apache.ignite.scenario.internal.model.processing.AuthHistoryKey;
+import org.apache.ignite.scenario.internal.model.processing.CardholderKey;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,8 +32,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 
-public class SberProcessingTask extends AbstractSberbankTask {
-    private static final Logger LOG = LogManager.getLogger(SberProcessingTask.class.getName());
+public class ProcessingTask extends AbstractProcessingTask {
+    private static final Logger LOG = LogManager.getLogger(ProcessingTask.class.getName());
 
     // https://ggsystems.atlassian.net/browse/QA-2599 SELECT without 'LIMIT 1' can return >1 rows
     private static final String SQL_CARDHOLDER_SELECT =
@@ -46,11 +45,11 @@ public class SberProcessingTask extends AbstractSberbankTask {
     private static final String SQL_HISTORY_INSERT = "INSERT INTO " + AUTH_HISTORY_TABLE_NAME +
             " (ts, srcPan, tgtPan, srcAcct, amount, resCode) VALUES (?, ?, ?, ?, ?, ?)";
 
-    public SberProcessingTask(PocTesterArguments args) {
+    public ProcessingTask(PocTesterArguments args) {
         super(args);
     }
 
-    public SberProcessingTask(PocTesterArguments args, TaskProperties props) {
+    public ProcessingTask(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 

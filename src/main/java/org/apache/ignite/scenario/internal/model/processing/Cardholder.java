@@ -15,26 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
-import org.apache.ignite.cache.affinity.AffinityKeyMapped;
+public class Cardholder {
+    private String FIRSTNAME;
 
-public class AccountKey {
-    private long ACCTID;
+    private String LASTNAME;
 
-    @AffinityKeyMapped
-    private long PAN;
-
-    public AccountKey(long account, long pan) {
-        this.ACCTID = account;
-        this.PAN = pan;
-    }
-
-    @Override
-    public String toString() {
-        return "AccountKey{" +
-                "account=" + ACCTID +
-                ", card_num=" + PAN +
-                '}';
+    public Cardholder(String firstName, String lastName) {
+        this.FIRSTNAME = firstName;
+        this.LASTNAME = lastName;
     }
 }

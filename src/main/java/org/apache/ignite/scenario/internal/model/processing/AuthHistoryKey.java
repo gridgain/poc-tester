@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
 import org.apache.ignite.cache.affinity.AffinityKeyMapped;
 
-public class AcquiringTxKey {
+public class AuthHistoryKey {
     private long TS;
 
     @AffinityKeyMapped
-    private long TGTPAN;
+    private long SRCPAN;
 
-    public AcquiringTxKey(long TS, long TGTPAN) {
-        this.TS = TS;
-        this.TGTPAN = TGTPAN;
+    public AuthHistoryKey(long ts, long srcPan) {
+        this.TS = ts;
+        this.SRCPAN = srcPan;
     }
 }
