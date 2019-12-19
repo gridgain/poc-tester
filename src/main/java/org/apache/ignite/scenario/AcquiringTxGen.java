@@ -22,12 +22,11 @@ import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.lang.IgniteCallable;
 import org.apache.ignite.resources.IgniteInstanceResource;
-import org.apache.ignite.scenario.internal.AbstractSberbankTask;
+import org.apache.ignite.scenario.internal.AbstractProcessingTask;
 import org.apache.ignite.scenario.internal.PocTesterArguments;
 import org.apache.ignite.scenario.internal.TaskProperties;
-import org.apache.ignite.scenario.internal.model.sberbank.AcquiringTx;
-import org.apache.ignite.scenario.internal.model.sberbank.AcquiringTxKey;
-import org.apache.ignite.scenario.internal.utils.PocTesterUtils;
+import org.apache.ignite.scenario.internal.model.processing.AcquiringTx;
+import org.apache.ignite.scenario.internal.model.processing.AcquiringTxKey;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,8 +34,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class SberAcquiringTxGen extends AbstractSberbankTask {
-    private static final Logger LOG = LogManager.getLogger(SberAcquiringTxGen.class.getName());
+public class AcquiringTxGen extends AbstractProcessingTask {
+    private static final Logger LOG = LogManager.getLogger(AcquiringTxGen.class.getName());
 
     private static final String SQL_SELECT_ACCOUNT = "SELECT acctId FROM " + ACCOUNTS_TABLE_NAME +
             " WHERE (pan = ?);";
@@ -44,11 +43,11 @@ public class SberAcquiringTxGen extends AbstractSberbankTask {
     private static final String SQL_INSERT_TX = "INSERT INTO " + ACQUIRING_TX_TABLE_NAME +
             " (ts, tgtPan, srcPan, tgtAcct, srcAcct, amount, reconciled, replicated) VALUES (?, ?, ?, ?, ?, ?, false, false);";
 
-    public SberAcquiringTxGen(PocTesterArguments args) {
+    public AcquiringTxGen(PocTesterArguments args) {
         super(args);
     }
 
-    public SberAcquiringTxGen(PocTesterArguments args, TaskProperties props) {
+    public AcquiringTxGen(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 

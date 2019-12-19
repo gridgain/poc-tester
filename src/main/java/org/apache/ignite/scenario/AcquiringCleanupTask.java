@@ -18,9 +18,8 @@
 package org.apache.ignite.scenario;
 
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
-import org.apache.ignite.scenario.internal.AbstractSberbankTask;
+import org.apache.ignite.scenario.internal.AbstractProcessingTask;
 import org.apache.ignite.scenario.internal.PocTesterArguments;
 import org.apache.ignite.scenario.internal.TaskProperties;
 import org.apache.ignite.scenario.internal.utils.PocTesterUtils;
@@ -29,20 +28,24 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 
-public class SberProcessingCleanupTask extends AbstractSberbankTask {
-    private static final Logger LOG = LogManager.getLogger(SberProcessingCleanupTask.class.getName());
+/**
+ * Remove processed and old entries from acquiring transaction history cache
+ */
+// TODO: DRY: extend ProcessingCleanupTask
+public class AcquiringCleanupTask extends AbstractProcessingTask {
+    private static final Logger LOG = LogManager.getLogger(AcquiringCleanupTask.class.getName());
 
-    private static final String SQL_DELETE_HISTORY = "DELETE FROM " + AUTH_HISTORY_TABLE_NAME + " WHERE ts < ?";
+    private static final String SQL_DELETE_HISTORY = "DELETE FROM " + ACQUIRING_TX_TABLE_NAME +
+            " WHERE (ts < ? AND reconciled = true AND replicated = true)";
 
     private long timeThresholdMillis;
 
-    public SberProcessingCleanupTask(PocTesterArguments args) {
+    public AcquiringCleanupTask(PocTesterArguments args) {
         super(args);
     }
 
-    public SberProcessingCleanupTask(PocTesterArguments args, TaskProperties props) {
+    public AcquiringCleanupTask(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 
@@ -64,16 +67,16 @@ public class SberProcessingCleanupTask extends AbstractSberbankTask {
 
         long timeNow = Instant.now().toEpochMilli();
 
-        IgniteCache<Object, Object> histCache = ignite().cache(AUTH_HISTORY_CACHE_NAME);
+        IgniteCache<Object, Object> cache = ignite().cache(ACQUIRING_TX_CACHE_NAME);
 
         SqlFieldsQuery deleteQry = new SqlFieldsQuery(SQL_DELETE_HISTORY)
                 .setArgs(timeNow - timeThresholdMillis);
 
         try {
-            histCache.query(deleteQry);
+            cache.query(deleteQry).getAll();
         }
         catch (Exception e) {
-            LOG.error("Failed to delete old entries from {}", AUTH_HISTORY_CACHE_NAME, e);
+            LOG.error("Failed to delete old entries from {}", ACQUIRING_TX_CACHE_NAME, e);
         }
 
         LOG.info("Iteration end");

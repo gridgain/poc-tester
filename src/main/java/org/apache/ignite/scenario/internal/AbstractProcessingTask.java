@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public abstract class AbstractSberbankTask extends AbstractReportingTask {
+public abstract class AbstractProcessingTask extends AbstractReportingTask {
 
     public static final String CARDHOLDERS_TABLE_NAME = "Cardholders";
 
@@ -50,11 +50,11 @@ public abstract class AbstractSberbankTask extends AbstractReportingTask {
 
     protected long cardNumEnd;
 
-    public AbstractSberbankTask(PocTesterArguments args) {
+    public AbstractProcessingTask(PocTesterArguments args) {
         super(args);
     }
 
-    public AbstractSberbankTask(PocTesterArguments args, TaskProperties props) {
+    public AbstractProcessingTask(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 
