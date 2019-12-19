@@ -18,7 +18,7 @@
 package org.apache.ignite.scenario;
 
 import org.apache.ignite.cache.query.SqlFieldsQuery;
-import org.apache.ignite.scenario.internal.AbstractSberbankTask;
+import org.apache.ignite.scenario.internal.AbstractProcessingTask;
 import org.apache.ignite.scenario.internal.PocTesterArguments;
 import org.apache.ignite.scenario.internal.TaskProperties;
 import org.apache.ignite.scenario.internal.utils.PocTesterUtils;
@@ -31,8 +31,8 @@ import java.util.List;
 /**
  * Count and check sum of balances on all accounts.
  */
-public class SberAcquiringReportTask extends AbstractSberbankTask {
-    private static final Logger LOG = LogManager.getLogger(SberAcquiringReportTask.class.getName());
+public class AcquiringReportTask extends AbstractProcessingTask {
+    private static final Logger LOG = LogManager.getLogger(AcquiringReportTask.class.getName());
 
     private static final String SQL_SELECT_BALANCE_SUM = "SELECT SUM (balance) FROM " + ACCOUNTS_TABLE_NAME;
 
@@ -42,11 +42,11 @@ public class SberAcquiringReportTask extends AbstractSberbankTask {
 
     private BigDecimal initialSum;
 
-    public SberAcquiringReportTask(PocTesterArguments args) {
+    public AcquiringReportTask(PocTesterArguments args) {
         super(args);
     }
 
-    public SberAcquiringReportTask(PocTesterArguments args, TaskProperties props) {
+    public AcquiringReportTask(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 

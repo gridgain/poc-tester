@@ -15,24 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
-public class Account {
-    private long BALANCE;
+public class AuthHistory {
+    private long tgtPan;
 
-    public Account(long balance) {
-        this.BALANCE = balance;
-    }
+    private long srcAcct;
 
-    public long getBalance() {
-        return BALANCE;
-    }
+    private long amount;
 
-    public void debit (long amount) {
-        BALANCE += amount;
-    }
-
-    public void credit (long amount) {
-        BALANCE -= amount;
+    public AuthHistory(long tgtPan, long srcAcct, long amount) {
+        this.tgtPan = tgtPan;
+        this.srcAcct = srcAcct;
+        this.amount = amount;
     }
 }
