@@ -15,18 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
-public class AuthHistory {
-    private long tgtPan;
+import org.apache.ignite.cache.affinity.AffinityKeyMapped;
 
-    private long srcAcct;
+public class CardholderKey {
+    @AffinityKeyMapped
+    private long PAN;
 
-    private long amount;
+    public CardholderKey(long pan) {
+        this.PAN = pan;
+    }
 
-    public AuthHistory(long tgtPan, long srcAcct, long amount) {
-        this.tgtPan = tgtPan;
-        this.srcAcct = srcAcct;
-        this.amount = amount;
+    public long getPan() {
+        return PAN;
     }
 }

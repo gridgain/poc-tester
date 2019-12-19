@@ -1,0 +1,16 @@
+DROP TABLE IF EXISTS Cardholders;
+DROP TABLE IF EXISTS Accounts;
+DROP TABLE IF EXISTS AuthHistory;
+DROP TABLE IF EXISTS AcquiringTx;
+CREATE TABLE Cardholders (pan BIGINT, firstName VARCHAR(50), lastName VARCHAR(50), PRIMARY KEY(pan)) WITH "ATOMICITY=TRANSACTIONAL, BACKUPS=2, CACHE_NAME=CardholdersCache, CACHE_GROUP=processing, AFFINITY_KEY=pan, KEY_TYPE=org.apache.ignite.scenario.internal.model.processing.CardholderKey, VALUE_TYPE=org.apache.ignite.scenario.internal.model.processing.Cardholder";
+CREATE TABLE Accounts (acctId BIGINT, pan BIGINT, balance BIGINT, PRIMARY KEY(acctId, pan)) WITH "ATOMICITY=TRANSACTIONAL, BACKUPS=2, CACHE_NAME=AccountsCache, CACHE_GROUP=processing, AFFINITY_KEY=pan, KEY_TYPE=org.apache.ignite.scenario.internal.model.processing.AccountKey, VALUE_TYPE=org.apache.ignite.scenario.internal.model.processing.Account";
+CREATE TABLE AuthHistory (ts BIGINT, srcPan BIGINT, tgtPan BIGINT, srcAcct BIGINT, amount BIGINT, resCode INT, PRIMARY KEY(ts, srcPan)) WITH "ATOMICITY=TRANSACTIONAL, BACKUPS=2, CACHE_NAME=AuthHistoryCache, CACHE_GROUP=processing, AFFINITY_KEY=srcPan, KEY_TYPE=org.apache.ignite.scenario.internal.model.processing.AuthHistoryKey, VALUE_TYPE=org.apache.ignite.scenario.internal.model.processing.AuthHistory";
+CREATE TABLE AcquiringTx (ts BIGINT, tgtPan BIGINT, srcPan BIGINT, tgtAcct BIGINT, srcAcct BIGINT, amount BIGINT, reconciled BOOLEAN, replicated BOOLEAN, PRIMARY KEY(ts, tgtPan)) WITH "ATOMICITY=TRANSACTIONAL, BACKUPS=2, CACHE_NAME=AcquiringTxCache, CACHE_GROUP=acquiring, KEY_TYPE=org.apache.ignite.scenario.internal.model.processing.AcquiringTxKey, VALUE_TYPE=org.apache.ignite.scenario.internal.model.processing.AcquiringTx";
+CREATE INDEX card_idx ON Cardholders (pan, firstName, lastName);
+CREATE INDEX acct_idx ON Accounts (acctId, pan);
+CREATE INDEX auth_hist_0_idx ON AuthHistory (ts, srcPan, tgtPan);
+CREATE INDEX auth_hist_1_idx ON AuthHistory (srcPan, amount);
+CREATE INDEX auth_hist_2_idx ON AuthHistory (srcPan, resCode);
+CREATE INDEX acq_0_ids ON AcquiringTx (ts, reconciled);
+CREATE INDEX acq_1_ids ON AcquiringTx (ts, replicated);
+CREATE INDEX acq_2_ids ON AcquiringTx (tgtAcct, srcAcct, amount, reconciled);

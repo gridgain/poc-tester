@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.scenario.internal.model.sberbank;
+package org.apache.ignite.scenario.internal.model.processing;
 
-public class Cardholder {
-    private String FIRSTNAME;
+import org.apache.ignite.cache.affinity.AffinityKeyMapped;
 
-    private String LASTNAME;
+public class AcquiringTxKey {
+    private long TS;
 
-    public Cardholder(String firstName, String lastName) {
-        this.FIRSTNAME = firstName;
-        this.LASTNAME = lastName;
+    @AffinityKeyMapped
+    private long TGTPAN;
+
+    public AcquiringTxKey(long TS, long TGTPAN) {
+        this.TS = TS;
+        this.TGTPAN = TGTPAN;
     }
 }

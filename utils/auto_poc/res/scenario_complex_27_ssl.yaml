@@ -5,7 +5,7 @@ parameters:
 #  - res/cluster/params_mode_pds_inmem_mix.yaml
   - res/cluster/params_mode_pds_inmem_mix_ssl.yaml
   - res/cache/params_cache_2000_mixed.yaml
-  - res/params_sber.yaml
+  - res/params_processing.yaml
 setup:
   - prepare
   - kill
@@ -23,9 +23,9 @@ test:
   - jdbc_insert_balance_task
   - wait_for_jdbc_lock
 
-  # Preload data for Sberbank's "processing" use case
-  - sber_jdbc_create_processing_tables_task
-  - sber_jdbc_insert_cardholders_task
+  # Preload data for "processing" use case
+  - jdbc_create_processing_tables_task
+  - jdbc_insert_cardholders_task
   - wait_for_jdbc_lock
 
   # Transfer tasks
@@ -36,13 +36,13 @@ test:
   - jdbc_check_sum_task
   - jdbc_tx_balance_task
 
-  - sber_processing_transactions_task
-  - sber_processing_transactions_cleanup_task
-  - sber_acquiring_tx_gen_task
-  - sber_acquiring_reconciliation_task
-  - sber_acquiring_settlement_task
-  - sber_acquiring_report_task
-  - sber_acquiring_cleanup_task
+  - processing_transactions_task
+  - processing_transactions_cleanup_task
+  - acquiring_tx_gen_task
+  - acquiring_reconciliation_task
+  - acquiring_settlement_task
+  - acquiring_report_task
+  - acquiring_cleanup_task
 
   - topology_increase_task
 

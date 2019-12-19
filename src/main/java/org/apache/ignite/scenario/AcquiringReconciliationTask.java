@@ -24,15 +24,12 @@ import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.cluster.ClusterGroup;
 import org.apache.ignite.lang.IgniteCallable;
 import org.apache.ignite.resources.IgniteInstanceResource;
-import org.apache.ignite.scenario.internal.AbstractSberbankTask;
+import org.apache.ignite.scenario.internal.AbstractProcessingTask;
 import org.apache.ignite.scenario.internal.PocTesterArguments;
 import org.apache.ignite.scenario.internal.TaskProperties;
-import org.apache.ignite.scenario.internal.model.sberbank.Account;
-import org.apache.ignite.scenario.internal.model.sberbank.AccountKey;
-import org.apache.ignite.scenario.internal.model.sberbank.AcquiringTx;
-import org.apache.ignite.scenario.internal.model.sberbank.AcquiringTxKey;
+import org.apache.ignite.scenario.internal.model.processing.AcquiringTx;
+import org.apache.ignite.scenario.internal.model.processing.AcquiringTxKey;
 import org.apache.ignite.scenario.internal.utils.PocTesterUtils;
-import org.apache.ignite.transactions.Transaction;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,19 +37,17 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Get acquiring records which are reconciled but not replicated yet.
- * Transfer money between accounts mentioned in these records.
- * Set the replication flag to 'true'.
+ * Select a random card and get total amount of money transferred to a card within some time period.
+ * Raise the reconciliation flag for processed records.
  */
-public class SberAcquiringSettlementTask extends AbstractSberbankTask {
-    private static final Logger LOG = LogManager.getLogger(SberAcquiringSettlementTask.class.getName());
+public class AcquiringReconciliationTask extends AbstractProcessingTask {
+    private static final Logger LOG = LogManager.getLogger(AcquiringReconciliationTask.class.getName());
 
     private static final int MAX_RECORDS_TO_PROCESS = 1000;
 
@@ -60,11 +55,11 @@ public class SberAcquiringSettlementTask extends AbstractSberbankTask {
 
     private long timeThresholdMillis;
 
-    public SberAcquiringSettlementTask(PocTesterArguments args) {
+    public AcquiringReconciliationTask(PocTesterArguments args) {
         super(args);
     }
 
-    public SberAcquiringSettlementTask(PocTesterArguments args, TaskProperties props) {
+    public AcquiringReconciliationTask(PocTesterArguments args, TaskProperties props) {
         super(args, props);
     }
 
@@ -95,22 +90,22 @@ public class SberAcquiringSettlementTask extends AbstractSberbankTask {
         List<Future<?>> futList = new ArrayList<>();
 
         // Submit compute runnables to the executor service
-        List<Long> cardsNumFromTx = getCardsNumFromTx(MAX_RECORDS_TO_PROCESS, true, false);
+        List<Long> cardsNumFromTx = getCardsNumFromTx(MAX_RECORDS_TO_PROCESS, false, false);
 
         LOG.info("Unique cards to process: {}", cardsNumFromTx.size());
 
-        for (long cardNum : cardsNumFromTx) {
+        for (long targetCardNum : cardsNumFromTx) {
             Future fut = execSrv.submit(() -> {
-                Collection<Integer> counters = compute.broadcast(
-                        new SettlementTask(timeNow - timeThresholdMillis, cardNum)
+                Collection<Long> totals = compute.broadcast(
+                        new ReconciliationTask(timeNow - timeThresholdMillis, targetCardNum)
                 );
 
-                int txProcessed = 0;
+                long totalAmount = 0;
 
-                for (Integer counter : counters)
-                    txProcessed += counter;
+                for (Long total : totals)
+                    totalAmount += total;
 
-                LOG.info("Transfers made for card {}: {}", cardNum, txProcessed);
+                LOG.info("Total amount deposited to card {}: {}", targetCardNum, totalAmount);
             });
 
             futList.add(fut);
@@ -134,77 +129,50 @@ public class SberAcquiringSettlementTask extends AbstractSberbankTask {
     }
 
     /**
-     * Select
+     * Select unprocessed acquiring records for a card.
      */
-    private static class SettlementTask implements IgniteCallable<Integer> {
+    private static class ReconciliationTask implements IgniteCallable<Long> {
         private long time;
 
-        private long cardNum;
+        private long targetCardNum;
 
-        private static final String SQL_SELECT_TX = "SELECT tgtPan, srcPan, tgtAcct, srcAcct, amount FROM " + ACQUIRING_TX_TABLE_NAME +
-                " WHERE (reconciled = true AND replicated = false AND ts < ? AND tgtPan = ?)";
+        private static final String SQL_SELECT_TX = "SELECT amount FROM " + ACQUIRING_TX_TABLE_NAME +
+                " WHERE (reconciled = false AND replicated = false AND ts < ? AND tgtPan = ?)";
 
-        private static final String SQL_UPDATE_REPL_FLAG = "UPDATE " + ACQUIRING_TX_TABLE_NAME +
-                " SET replicated = true" +
-                " WHERE (reconciled = true AND replicated = false AND ts < ? AND tgtPan = ?)";
-
-        public SettlementTask(long time, long cardNum) {
-            this.time = time;
-            this.cardNum = cardNum;
-        }
+        private static final String SQL_UPDATE_TX_RECONC_FLAG = "UPDATE " + ACQUIRING_TX_TABLE_NAME +
+                " SET reconciled = true" +
+                " WHERE (reconciled = false AND replicated = false AND ts < ? AND tgtPan = ?)";
 
         @IgniteInstanceResource
         Ignite ignite;
 
+        ReconciliationTask(long time, long targetCardNum) {
+            this.time = time;
+            this.targetCardNum = targetCardNum;
+        }
+
         @Override
-        public Integer call() throws Exception {
-            Integer cnt = 0;
+        public Long call() {
+            Long res = 0L;
 
             IgniteCache<AcquiringTxKey, AcquiringTx> txCache = ignite.cache(ACQUIRING_TX_CACHE_NAME);
-            IgniteCache<AccountKey, Account> accCache = ignite.cache(ACCOUNTS_CACHE_NAME);
 
             SqlFieldsQuery txSelectQry = new SqlFieldsQuery(SQL_SELECT_TX)
-                    .setArgs(time, cardNum)
+                    .setArgs(time, targetCardNum)
                     .setLocal(true);
 
             for (List<?> row : txCache.query(txSelectQry).getAll()) {
-                long tgtPan = (Long) row.get(0);
-                long srcPan = (Long) row.get(1);
-                long tgtAcct = (Long) row.get(2);
-                long srcAcct = (Long) row.get(3);
-                long amount = (Long) row.get(4);
-
-                AccountKey k0 = new AccountKey(srcAcct, srcPan);
-                AccountKey k1 = new AccountKey(tgtAcct, tgtPan);
-
-                // Transfer money between accounts
-                try (Transaction tx = ignite.transactions().txStart()) {
-                    Account acc0 = accCache.get(k0);
-                    Account acc1 = accCache.get(k1);
-
-                    acc0.credit(amount);
-                    acc1.debit(amount);
-
-                    accCache.put(k0, acc0);
-                    accCache.put(k1, acc1);
-
-                    tx.commit();
-
-                    cnt++;
-                }
-                catch (Exception e) {
-                    LOG.error("Failed to transfer money from {} to {}", srcAcct, tgtAcct);
-                }
+                res += (Long) row.get(0);
             }
 
-            // Set 'replicated = true' for all fetched records
-            SqlFieldsQuery txUpdate = new SqlFieldsQuery(SQL_UPDATE_REPL_FLAG)
-                    .setArgs(time, cardNum)
+            // Set reconciliation flag to 'true'
+            SqlFieldsQuery txUpdate = new SqlFieldsQuery(SQL_UPDATE_TX_RECONC_FLAG)
+                    .setArgs(time, targetCardNum)
                     .setLocal(true);
 
             txCache.query(txUpdate);
 
-            return cnt;
+            return res;
         }
     }
 }
