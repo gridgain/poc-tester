@@ -23,7 +23,7 @@ ME=$(basename $0)
 
 source "${SCRIPT_HOME}"/include/main-functions.sh
 
-MAIN_CLASS="org.apache.ignite.scenario.internal.utils.CollectWorker"
+MAIN_CLASS="org.gridgain.poc.framework.worker.CollectWorker"
 
 LOG_FILE_NAME="${POC_TESTER_HOME}/log/${MAIN_TIME}-collect.log" ${JAVA} -DpocTesterHome="${POC_TESTER_HOME}" -cp ${CP} \
     ${MAIN_CLASS} $* 2>& 1

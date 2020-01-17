@@ -21,7 +21,7 @@ SCRIPT_HOME=$(cd $(dirname "$0"); pwd)
 
 source "${SCRIPT_HOME}"/include/main-functions.sh
 
-MAIN_CLASS="org.apache.ignite.scenario.internal.utils.DeployZKWorker"
+MAIN_CLASS="org.gridgain.poc.framework.worker.DeployZKWorker"
 
 LOG_FILE_NAME="${POC_TESTER_HOME}/log/${MAIN_TIME}-deploy-zk.log" ${JAVA} -DpocTesterHome="${POC_TESTER_HOME}" -cp ${CP} \
     ${MAIN_CLASS} $* 2>& 1

@@ -32,7 +32,7 @@
     
     <util:list id="indexed-types">
         <value>java.lang.Long</value>
-        <value>org.apache.ignite.scenario.internal.model.SampleObject</value>
+        <value>org.gridgain.poc.framework.model.SampleObject</value>
     </util:list>
 
     <util:list id="caches">
@@ -87,7 +87,7 @@
             <property name="name" value="sqlFunc"/>
             <property name="sqlFunctionClasses">
                 <list>
-                    <value>org.apache.ignite.scenario.internal.jdbc.IgniteSequenceFunction</value>
+                    <value>org.gridgain.poc.framework.worker.task.jdbc.IgniteSequenceFunction</value>
                 </list>
             </property>
             <property name="cacheMode" value="PARTITIONED"/>
