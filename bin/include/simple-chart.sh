@@ -21,7 +21,7 @@ SCRIPT_HOME=$(cd $(dirname "$0"); pwd)
 
 source "${SCRIPT_HOME}"/main-functions.sh
 
-MAIN_CLASS="org.apache.ignite.scenario.internal.charts.SimpleChart"
+MAIN_CLASS="org.gridgain.poc.framework.worker.charts.SimpleChart"
 
 LOG_FILE_NAME="${POC_TESTER_HOME}/log/${MAIN_TIME}-charts.log" POC_TESTER_HOME="${POC_TESTER_HOME}" ${JAVA} \
  -DpocTesterHome="${POC_TESTER_HOME}" -cp ${CP} ${MAIN_CLASS} $* 2>& 1
