@@ -21,7 +21,7 @@ SCRIPT_HOME=$(cd $(dirname "$0"); pwd)
 
 source "${SCRIPT_HOME}"/main-functions.sh
 
-MAIN_CLASS="org.apache.ignite.scenario.internal.utils.StatWorker"
+MAIN_CLASS="org.gridgain.poc.framework.worker.StatWorker"
 
 LOG_FILE_NAME="${POC_TESTER_HOME}/log/${MAIN_TIME}-stats.log" ${JAVA} -DpocTesterHome="${POC_TESTER_HOME}" -cp ${CP} \
     ${MAIN_CLASS} $* 2>& 1

@@ -42,14 +42,14 @@
         <!--<Logger name="org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi" level="debug"/>-->
         <!--<Logger name="org.apache.ignite.internal.managers.communication.GridIoManager" level="debug"/>-->
         <!--<Logger name="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi" level="debug"/>-->
-        <Logger name="org.apache.ignite.scenario.internal.utils.SSHCmdWorker" level="debug"/>
-        <Logger name="org.apache.ignite.scenario.RemoteCmdTask" level="debug"/>
+        <Logger name="org.gridgain.poc.framework.ssh.RemoteSshExecutor" level="debug"/>
+        <Logger name="org.gridgain.poc.tasks.RemoteCmdTask" level="debug"/>
 
-        <Logger name="org.apache.ignite.scenario.CheckedSnapshotTask" level="debug"/>
-        <Logger name="org.apache.ignite.scenario.JdbcX10InsertTableTask" level="debug"/>
-<!--        <Logger name="org.apache.ignite.scenario.internal.AbstractJdbcTask" level="debug"/>-->
-        <Logger name="org.apache.ignite.scenario.JdbcPlainInsertTableTask" level="debug"/>
-        <Logger name="org.apache.ignite.scenario.CheckJdbcSumTask" level="debug"/>
+        <Logger name="org.gridgain.poc.tasks.CheckedSnapshotTask" level="debug"/>
+        <Logger name="org.gridgain.poc.tasks.JdbcX10InsertTableTask" level="debug"/>
+<!--        <Logger name="org.gridgain.poc.framework.worker.task.AbstractJdbcTask" level="debug"/>-->
+        <Logger name="org.gridgain.poc.tasks.JdbcPlainInsertTableTask" level="debug"/>
+        <Logger name="org.gridgain.poc.tasks.CheckJdbcSumTask" level="debug"/>
         <!--<Logger name="org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtPartitionTopologyImpl" level="debug"/>-->
         <Logger name="org.apache.ignite.internal.processors.cache.transactions.IgniteTxHandler" level="fatal"/>
         <Logger name="org.apache.ignite.internal.processors.timeout.GridTimeoutProcessor" level="fatal"/>
