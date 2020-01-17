@@ -38,7 +38,6 @@ The artifact will be stored in `target/assembly` directory of the local reposito
 
 Main development branches correspond to GG "baselines":
 * master -- GG 8.8.x and later
-* ignite-2.4-master -- GG 8.4.x
 * ignite-2.5-master -- GG 8.5.x
 * ignite-2.7-master -- GG 8.7.1, 8.7.2
 * gridgain-8.7-master -- GG 8.7.x
