@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
-            <version>0.1.53</version>
+            <version>0.1.54</version>
         </dependency>
 
         <dependency>
@@ -177,7 +177,7 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.23</version>
+            <version>1.33</version>
         </dependency>
     </dependencies>
 
